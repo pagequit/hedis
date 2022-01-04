@@ -3,8 +3,8 @@
 import { config } from '../hedis.config';
 import Hedis from './Hedis';
 
-
-const hedis = new Hedis(config);
+const { username, prefix, clientOptions } = config;
+const hedis = new Hedis(username, prefix, clientOptions);
 
 hedis.connect();
 
@@ -20,4 +20,8 @@ async function main(hedis: Hedis) {
 	});
 
 	await channel.pub(`hello @${channelName}!`);
+
+	await hedis.client.set('key', '1');
+	const val = await hedis.client.add('key', 2);
+	console.log(val);
 }

@@ -1,8 +1,7 @@
 export const config = {
-	/** @type string */
+	username: 'devuser',
 	prefix: 'hedis',
-	/** @type RedisClientOptions */
-	clientOptions: null,
+	clientOptions: {},
 };
 
 export type HedisConfig = typeof config;
