@@ -8,9 +8,9 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch Program",
-			"program": "${workspaceFolder}/out/src/app.js",
+			"program": "${workspaceFolder}/dist/src/app.js",
 			//"preLaunchTask": "tsc: build - tsconfig.json",
-			"outFiles": ["${workspaceFolder}/out/**/*.js"],
+			"outFiles": ["${workspaceFolder}/dist/**/*.js"],
 			"console": "integratedTerminal"
 		},
 	],

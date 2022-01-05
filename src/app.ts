@@ -22,6 +22,6 @@ async function main(hedis: Hedis) {
 	await channel.pub(`hello @${channelName}!`);
 
 	await hedis.client.set('key', '1');
-	const val = await hedis.client.add('key', 2);
+	const val = await hedis.client.ADD('key', 2);
 	console.log(val);
 }

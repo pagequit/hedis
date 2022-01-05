@@ -1,7 +1,7 @@
 {
   "name": "hedis",
   "version": "1.0.0",
-  "main": "out/app.js",
+  "main": "dist/src/app.js",
   "author": "pagequit.net",
   "license": "MIT",
   "private": true,
