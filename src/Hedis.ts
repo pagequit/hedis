@@ -6,7 +6,7 @@ import {
 	RedisScripts
 } from 'redis';
 import Channel from './classes/Channel';
-import ADD from './scripts/add';
+import TIDYUP from './scripts/tidyUp';
 
 export default class Hedis extends Events {
 	username: string;
@@ -21,20 +21,26 @@ export default class Hedis extends Events {
 
 		this.client = createClient({
 			scripts: <RedisScripts> {
-				ADD,
+				TIDYUP,
 			},
 			...clientOptions
 		});
 		this.subscriber = createClient(clientOptions);
 	}
 
-	async connect(): Promise<Hedis> {
+	async connect(): Promise<Channel> {
 		await this.client.connect();
 		await this.subscriber.connect();
 
-		this.emit('ready', this);
+		// yes I'm aware of the potential channel collisions here
+		const channel = await this.getChannel(this.username);
+		channel.sub(message => {
+			this.emit('message', message);
+		});
 
-		return this;
+		this.emit('ready', channel);
+
+		return channel;
 	}
 
 	async getChannel(name: string): Promise<Channel> {

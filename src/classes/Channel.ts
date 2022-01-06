@@ -19,8 +19,11 @@ export default class Channel {
 		const timestamp = Date.now();
 		const id = await this.hedis.client.INCR(`${prefix}:${this.name}:last_message_id`);
 
-		await this.hedis.client.HSET(`${prefix}:${this.name}:last_message:${id}`, ['username', username, 'content', content, 'timestamp', timestamp]);
+		await this.hedis.client.HSET(`${prefix}:${this.name}:${id}`, ['username', username, 'content', content, 'timestamp', timestamp]);
 		await this.hedis.client.ZADD(`${prefix}:${this.name}`, { score: timestamp, value: id.toString() });
+
+		const done = await this.hedis.client.TIDYUP(`${prefix}:${this.name}`);
+		console.log(done);
 
 		return this.hedis.client.publish(this.name, this.schema + JSON.stringify({ id, username, content, timestamp }));
 	}
@@ -36,7 +39,7 @@ export default class Channel {
 				if (!id || !username || !content || !timestamp) {
 					throw new Error('1640784339243');
 				}
-				const message = new Message(id, this.name, username, content, timestamp);
+				const message = new Message(this.hedis, id, this.name, username, content, timestamp);
 				callbackfn(message);
 			}
 			catch (error) {

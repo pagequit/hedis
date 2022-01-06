@@ -1,5 +1,4 @@
 #!/usr/bin/node
-//import 'dotenv/config';
 import { config } from '../hedis.config';
 import Hedis from './Hedis';
 
@@ -10,18 +9,19 @@ hedis.connect();
 
 hedis.once('ready', main);
 
-async function main(hedis: Hedis) {
-	const channelName = 'discord';
+hedis.on('message', async message => {
+	console.log('IN: ', message.content);
+	await message.reply(`hello back from ${hedis.username}!`);
+});
 
-	const channel = await hedis.getChannel(channelName);
+async function main() {
+	const hellBotChannel = await hedis.getChannel('hellBot');
 
-	await channel.sub(message => {
-		console.log('MESSAGE: ', message.content);
+	await hellBotChannel.sub(async message => {
+		console.log(hellBotChannel.name + ' IN: ', message.content);
 	});
 
-	await channel.pub(`hello @${channelName}!`);
-
-	await hedis.client.set('key', '1');
-	const val = await hedis.client.ADD('key', 2);
-	console.log(val);
+	for (let i = 0; i < 9; i++) {
+		await hellBotChannel.pub('hello #' + i);
+	}
 }
