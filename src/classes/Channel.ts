@@ -21,9 +21,7 @@ export default class Channel {
 
 		await this.hedis.client.HSET(`${prefix}:${this.name}:${id}`, ['username', username, 'content', content, 'timestamp', timestamp]);
 		await this.hedis.client.ZADD(`${prefix}:${this.name}`, { score: timestamp, value: id.toString() });
-
-		const done = await this.hedis.client.TIDYUP(`${prefix}:${this.name}`);
-		console.log(done);
+		await this.hedis.client.TIDYUP(`${prefix}:${this.name}`);
 
 		return this.hedis.client.publish(this.name, this.schema + JSON.stringify({ id, username, content, timestamp }));
 	}

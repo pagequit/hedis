@@ -13,7 +13,7 @@ hedis.on('message', async message => {
 });
 
 async function main() {
-	const hellBotChannel = await hedis.getChannel('hellBot');
+	const hellBotChannel = await hedis.getChannel('testChannel');
 
 	await hellBotChannel.sub(async message => {
 		console.log(hellBotChannel.name + ' IN: ', message.content);
