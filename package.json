@@ -1,10 +1,15 @@
 {
   "name": "hedis",
   "version": "1.0.0",
-  "main": "dist/src/app.js",
+  "main": "dist/src/Hedis.js",
+  "types": "dist/src/Hedis.d.ts",
   "author": "pagequit.net",
   "license": "MIT",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pagequit/hedis.git"
+  },
   "dependencies": {
     "redis": "^4.0.0"
   },

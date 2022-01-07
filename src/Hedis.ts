@@ -14,7 +14,7 @@ export default class Hedis extends Events {
 	client: ReturnType<typeof createClient>;
 	subscriber: ReturnType<typeof createClient>;
 
-	constructor(username: string, prefix: string, clientOptions: RedisClientOptions<RedisModules, RedisScripts>) {
+	constructor(username: string, prefix: string, clientOptions?: RedisClientOptions<RedisModules, RedisScripts>) {
 		super();
 		this.username = username;
 		this.prefix = prefix;

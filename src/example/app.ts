@@ -1,9 +1,7 @@
 #!/usr/bin/node
-import { config } from '../hedis.config';
-import Hedis from './Hedis';
+import Hedis from '../Hedis';
 
-const { username, prefix, clientOptions } = config;
-const hedis = new Hedis(username, prefix, clientOptions);
+const hedis = new Hedis('devtest', 'hedis');
 
 hedis.connect();
 
