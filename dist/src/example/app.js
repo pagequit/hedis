@@ -10,7 +10,7 @@ hedis.on('message', async (message) => {
     await message.reply(`hello back from ${hedis.username}!`);
 });
 async function main() {
-    const hellBotChannel = await hedis.getChannel('hellBot');
+    const hellBotChannel = await hedis.getChannel('testChannel');
     await hellBotChannel.sub(async (message) => {
         console.log(hellBotChannel.name + ' IN: ', message.content);
     });
