@@ -1,4 +1,4 @@
-local limit = 5; -- could also be set as ARGV[1], but I'm lazy
+local limit = 128; -- could also be set as ARGV[1] e.g., but I'm lazy
 local count = redis.call('ZCOUNT', KEYS[1], '-inf', '+inf');
 
 if (count > limit)
