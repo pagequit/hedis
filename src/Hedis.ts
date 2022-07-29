@@ -2,6 +2,7 @@ import * as Events from 'node:events';
 import {
 	createClient,
 	RedisClientOptions,
+	RedisFunctions,
 	RedisModules,
 	RedisScripts
 } from 'redis';
@@ -14,7 +15,7 @@ export default class Hedis extends Events {
 	client: ReturnType<typeof createClient>;
 	subscriber: ReturnType<typeof createClient>;
 
-	constructor(username: string, prefix: string, clientOptions?: RedisClientOptions<RedisModules, RedisScripts>) {
+	constructor(username: string, prefix: string, clientOptions?: RedisClientOptions<RedisModules, RedisFunctions>) {
 		super();
 		this.username = username;
 		this.prefix = prefix;

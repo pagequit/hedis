@@ -1,8 +1,14 @@
 #!/usr/bin/node
 import Hedis from '../Hedis';
+import { createInterface } from 'node:readline';
 
 const hedis = new Hedis('devuser', 'hedis', {
 	url: 'redis://localhost:6379',
+});
+
+const rl = createInterface({
+	input: process.stdin,
+	output: process.stdout,
 });
 
 hedis.connect();
@@ -10,15 +16,13 @@ hedis.connect();
 hedis.once('ready', main);
 
 hedis.on('message', async message => {
-	await message.reply(`reply from ${hedis.username}!`);
+	console.log(message.content);
 });
 
 async function main() {
-	const testChannel = await hedis.getChannel('testchannel');
+	const hellBot = await hedis.getChannel('hellBot');
 
-	await testChannel.sub(async message => {
-		console.log(`${testChannel.name}: `, message.content);
+	rl.on('line', async (message: string) => {
+		await hellBot.pub(message);
 	});
-
-	await testChannel.pub(`hello from ${testChannel.name}!`);
 }
