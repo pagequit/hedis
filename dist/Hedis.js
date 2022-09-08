@@ -2,8 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const Events = require("node:events");
 const redis_1 = require("redis");
-const Channel_1 = require("./classes/Channel");
-const tidyUp_1 = require("./scripts/tidyUp");
+const Channel_1 = require("#src/Channel");
+const tidyUp_1 = require("#src/scripts/tidyUp");
 class Hedis extends Events {
     constructor(username, prefix, clientOptions) {
         super();

@@ -6,8 +6,8 @@ import {
 	RedisModules,
 	RedisScripts
 } from 'redis';
-import Channel from './classes/Channel';
-import TIDYUP from './scripts/tidyUp';
+import Channel from '#src/Channel';
+import TIDYUP from '#src/scripts/tidyUp';
 
 export default class Hedis extends Events {
 	username: string;

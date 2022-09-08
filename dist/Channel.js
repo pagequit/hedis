@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const Message_1 = require("../classes/Message");
+const Message_1 = require("#src/Message");
 class Channel {
     constructor(hedis, name) {
         this.hedis = hedis;

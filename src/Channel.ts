@@ -1,5 +1,5 @@
-import Hedis from '../Hedis';
-import Message from '../classes/Message';
+import Hedis from '#src/Hedis';
+import Message from '#src/Message';
 
 export default class Channel {
 	name: string;

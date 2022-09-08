@@ -1,4 +1,4 @@
-import Hedis from '../Hedis';
+import Hedis from '#src/Hedis';
 
 export default class Message {
 	hedis: Hedis;
