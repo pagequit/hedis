@@ -4,22 +4,23 @@ export default class Message {
 	hedis: Hedis;
 	id: string;
 	channel: string;
-	username: string;
+	author: string;
 	content: string;
-	timestamp: number;
+	ts: number;
 
-	constructor(hedis: Hedis, id: string, channel: string, username: string, content: string, timestamp: number) {
+	constructor(hedis: Hedis, id: string, channel: string, author: string, content: string, ts: number) {
+		this.hedis = hedis;
 		this.id = id;
 		this.channel = channel;
-		this.username = username;
+		this.author = author;
 		this.content = content;
-		this.timestamp = timestamp;
-		this.hedis = hedis;
+		this.ts = ts;
 	}
 
-	async reply(content: string): Promise<number> {
-		const channel = await this.hedis.getChannel(this.username);
+	// async reply(content: string): Promise<number> {
+	// 	const channel = await this.hedis.channels.oget(this.author);
+	// 	channel.
 
-		return channel.pub(content);
-	}
+	// 	return channel.pub(content);
+	// }
 }

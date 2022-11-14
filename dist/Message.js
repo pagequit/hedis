@@ -1,17 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class Message {
-    constructor(hedis, id, channel, username, content, timestamp) {
+    constructor(hedis, id, channel, author, content, ts) {
+        this.hedis = hedis;
         this.id = id;
         this.channel = channel;
-        this.username = username;
+        this.author = author;
         this.content = content;
-        this.timestamp = timestamp;
-        this.hedis = hedis;
-    }
-    async reply(content) {
-        const channel = await this.hedis.getChannel(this.username);
-        return channel.pub(content);
+        this.ts = ts;
     }
 }
 exports.default = Message;
