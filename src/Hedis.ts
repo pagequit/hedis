@@ -9,6 +9,7 @@ import {
 import Channel from '#src/Channel';
 import Connection from '#src/Connection';
 import OMap from '#src/unwrap/OMap';
+import Result, { Err, Ok } from '#src/unwrap/result';
 import TIDYUP from '#src/scripts/tidyUp';
 
 export default class Hedis extends Events {
@@ -16,7 +17,8 @@ export default class Hedis extends Events {
 	prefix: string;
 	client: ReturnType<typeof createClient>;
 	subscriber: ReturnType<typeof createClient>;
-	channels: OMap<string, Channel>;
+	channel: Channel;
+	connections: OMap<string, Channel>;
 
 	constructor(name: string, prefix: string, clientOptions?: RedisClientOptions<RedisModules, RedisFunctions>) {
 		super();
@@ -31,7 +33,7 @@ export default class Hedis extends Events {
 		});
 		this.subscriber = createClient(clientOptions);
 
-		this.channels = new OMap();
+		this.connections = new OMap();
 	}
 
 	async connect(): Promise<Channel> {
@@ -40,7 +42,7 @@ export default class Hedis extends Events {
 
 		// yes I'm aware of the potential channel collisions here
 		const channel = await this.createChannel(this.name);
-		this.channels.set(this.name, channel);
+		this.channel = channel;
 
 		channel.sub(message => {
 			this.emit('message', message);
@@ -57,10 +59,11 @@ export default class Hedis extends Events {
 		return new Channel(this, name);
 	}
 
-	// async connectToClient(name: string): Promise<Result<any, string>> {
-	// 	const channel = new Channel(this, name);
-	// 	channel.sub(message => {
+	async connectToClient(name: string): Promise<Result<Connection, string>> {
+		const con = new Connection(this, name);
+		const res = await con.syn();
 
-	// 	});
-	// }
+		this.connections.set(name, );
+
+	}
 }

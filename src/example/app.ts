@@ -21,11 +21,6 @@ hedis.on('message', async message => {
 });
 
 async function main() {
-	const bob = await hedis.createChannel('bob');
-
-	rl.on('line', async (message: string) => {
-		await bob.pub(message);
-	});
 
 	const charlie = await hedis.connectToClient('charlie');
 	const ok = charlie.send('Hey there :)');

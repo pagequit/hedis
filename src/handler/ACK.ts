@@ -1,3 +1,6 @@
-export default function(command: string) {
-	console.log('ACK: ', command);
+import Message from '#src/Message';
+
+export default function(callback: (message: Message) => void, message: Message) {
+	console.log('ACK');
+	callback(message);
 }

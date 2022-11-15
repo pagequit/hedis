@@ -1,3 +1,5 @@
+import Message from '#src/Message';
+
 export enum Command {
 	ACK = 'HED:ACK#',
 	MSG = 'HED:MSG#',
@@ -5,4 +7,4 @@ export enum Command {
 	REGEX = '^HED:([A-Z]{3})#',
 }
 
-export type Handler = (command: string) => void;
+export type Handler = (callback: (message: Message) => void, message: Message) => void;
