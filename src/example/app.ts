@@ -22,16 +22,19 @@ hedis.on('message', async message => {
 
 async function main() {
 
-	const charlie = await hedis.connectToClient('charlie');
-	const ok = charlie.send('Hey there :)');
+	const bob = await hedis.syn('bob')
+		.catch(console.log);
 
-	const data = 'data: TCP uses a three-way handshake to set up a TCP/IP connection over an IP based network. :data';
-	const data2 = 'data2: TCP uses a three-way handshake to set up a TCP/IP connection over an IP based network. :data2';
-	const data3 = '';
-	const hash = createHash('sha1').update(data).digest('base64');
-	const hash2 = createHash('sha1').update(data2).digest('base64');
-	const hash3 = createHash('sha1').update(data3).digest('base64');
-	console.log(hash);
-	console.log(hash2);
-	console.log(hash3);
+	bob.send('')
+
+
+	// const data = 'data: TCP uses a three-way handshake to set up a TCP/IP connection over an IP based network. :data';
+	// const data2 = 'data2: TCP uses a three-way handshake to set up a TCP/IP connection over an IP based network. :data2';
+	// const data3 = '';
+	// const hash = createHash('sha1').update(data).digest('base64');
+	// const hash2 = createHash('sha1').update(data2).digest('base64');
+	// const hash3 = createHash('sha1').update(data3).digest('base64');
+	// console.log(hash);
+	// console.log(hash2);
+	// console.log(hash3);
 }

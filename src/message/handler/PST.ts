@@ -1,6 +1,6 @@
-import Message from '#src/Message';
+import { Message } from '#src/Message';
 
 export default function(callback: (message: Message) => void, message: Message) {
-	console.log('SYN');
+	console.log('PST');
 	callback(message);
 }

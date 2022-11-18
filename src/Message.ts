@@ -1,26 +1,23 @@
-import Hedis from '#src/Hedis';
+export const MessageRegex = '^HED:([A-Z]{3})#';
 
-export default class Message {
-	hedis: Hedis;
-	id: string;
-	channel: string;
-	author: string;
-	content: string;
-	ts: number;
-
-	constructor(hedis: Hedis, id: string, channel: string, author: string, content: string, ts: number) {
-		this.hedis = hedis;
-		this.id = id;
-		this.channel = channel;
-		this.author = author;
-		this.content = content;
-		this.ts = ts;
-	}
-
-	// async reply(content: string): Promise<number> {
-	// 	const channel = await this.hedis.channels.oget(this.author);
-	// 	channel.
-
-	// 	return channel.pub(content);
-	// }
+export enum MessageType {
+	SYN = 'HED:SYN#',
+	ACK = 'HED:ACK#',
+	REQ = 'HED:REQ#',
+	PST = 'HED:PST#',
 }
+
+export type MessageHandler = (callback: (message: Message) => void, message: Message) => void;
+
+export type MessageHead = {
+	id: string,
+	author: string,
+	channel: string,
+	ts: number,
+};
+
+export type Message = {
+	type: MessageType,
+	head: MessageHead,
+	body: string,
+};

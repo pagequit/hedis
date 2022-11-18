@@ -1,71 +1,84 @@
 import Hedis from '#src/Hedis';
-import Message from '#src/Message';
-import { Command, Handler } from '#src/Command';
-import { ACK, MSG, SYN } from '#src/handler';
-import OMap from '#src/unwrap/OMap';
-import Result from '#src/unwrap/result';
+import { Message, MessageHead, MessageType, MessageRegex } from '#src/Message';
+import Option, { None } from '#src/unwrap/option';
 
 export default class Channel {
 	name: string;
 	hedis: Hedis;
-	commands: OMap<Command, Handler>;
 
 	constructor(hedis: Hedis, name: string) {
 		this.hedis = hedis;
 		this.name = name;
-		this.commands = new OMap([
-			[Command.ACK, ACK],
-			[Command.MSG, MSG],
-			[Command.SYN, SYN],
-		]);
 	}
 
-	async pub(command: Command, body: string): Promise<number> {
-		const { prefix, name } = this.hedis;
-		const ts = Date.now();
-		const id = await this.hedis.client.INCR(`${prefix}:${this.name}:last_message_id`);
+	// async syn(): Promise<Result<string, string>> {
+	// 	const id = Date.now().toString(16);
 
-		await this.hedis.client.HSET(`${prefix}:${this.name}:${id}`, ['name', name, 'body', body, 'ts', ts]);
-		await this.hedis.client.ZADD(`${prefix}:${this.name}`, { score: ts, value: id.toString() });
+	// 	const res = await this.hedis.client.publish(this.name, MessageType.SYN + id)
+	// 		.then(() => Ok(id) as Result<string, string>)
+	// 		.catch((e) => Err(e) as Result<string, string>);
+
+	// 	return this.connection;
+	// }
+
+	// async post() {
+	// 	// new Post();
+	// }
+
+	// async request() {
+	// 	// new Request();
+	// }
+
+	// async send(request: Request): Promise<Result<Response, Error>> {
+	// 	return ;
+	// }
+
+	private async pub(content: string): Promise<number> {
+		const { prefix, name: author } = this.hedis;
+		const ts = Date.now();
+		const id = await this.hedis.client.INCR(`${prefix}:${this.name}:last_message_id`)
+			.then((id) => id.toString());
+
+		await this.hedis.client.HSET(`${prefix}:${this.name}:${id}`, ['author', author, 'content', content, 'ts', ts]);
+		await this.hedis.client.ZADD(`${prefix}:${this.name}`, { score: ts, value: id });
 		// @ts-expect-error: TIDYUP does not exist on type (but it does)
 		await this.hedis.client.TIDYUP(`${prefix}:${this.name}`);
 
-		return this.hedis.client.publish(this.name, command + JSON.stringify({ id, name, body, ts }));
-	}
+		const head: MessageHead = {
+			id,
+			author,
+			channel: this.name,
+			ts,
+		};
+		const message = JSON.stringify({ head, content });
 
-	async syn(): Promise<Result<string, string>> {
-
+		return this.hedis.client.publish(this.name, message);
 	}
 
 	async sub(callback: (message: Message) => void): Promise<void> {
-		return this.hedis.subscriber.subscribe(this.name, rawMessage => {
-
-			// pleppy way
-			const match = rawMessage.match(Command.REGEX);
+		return this.hedis.subscriber.subscribe(this.name, async (rawMessage) => {
+			const match = rawMessage.match(MessageRegex);
 			if (!match) {
-				return;
+				return; // ignore messages with unknown schema
 			}
 
-			const key = match[0];
+			const type = match[0];
 			const index = match[0].length;
+			const message: Option<Message> = None();
 
 			try {
-				const { id, name, body, ts } = JSON.parse(rawMessage.slice(index));
-				if (id === undefined || name === undefined || body === undefined || ts === undefined) {
-					throw new Error('1640784339243');
-				}
-				const message = new Message(this.hedis, id, this.name, name, body, ts);
-
-				const command = this.commands.oget(key as Command);
-				if (command.isNone()) {
-					return console.warn('must be impossible');
-				}
-
-				command.unwrap()(callback, message);
+				const { head, content } = JSON.parse(rawMessage.slice(index));
+				message.insert({
+					type: type as MessageType,
+					head,
+					body: content,
+				});
 			}
 			catch (error) {
-				console.error(error);
+				return console.error(error);
 			}
+
+			return callback(message.unwrap());
 		});
 	}
 }

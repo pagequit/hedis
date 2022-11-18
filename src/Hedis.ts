@@ -7,9 +7,9 @@ import {
 	RedisScripts
 } from 'redis';
 import Channel from '#src/Channel';
-import Connection from '#src/Connection';
 import OMap from '#src/unwrap/OMap';
-import Result, { Err, Ok } from '#src/unwrap/result';
+import { ACK, PST, REQ, SYN } from '#src/message/handler';
+import { MessageType, MessageHandler } from '#src/Message';
 import TIDYUP from '#src/scripts/tidyUp';
 
 export default class Hedis extends Events {
@@ -18,7 +18,8 @@ export default class Hedis extends Events {
 	client: ReturnType<typeof createClient>;
 	subscriber: ReturnType<typeof createClient>;
 	channel: Channel;
-	connections: OMap<string, Channel>;
+	channels: OMap<string, Channel>;
+	handler: OMap<MessageType, MessageHandler>;
 
 	constructor(name: string, prefix: string, clientOptions?: RedisClientOptions<RedisModules, RedisFunctions>) {
 		super();
@@ -33,7 +34,13 @@ export default class Hedis extends Events {
 		});
 		this.subscriber = createClient(clientOptions);
 
-		this.connections = new OMap();
+		this.channels = new OMap();
+		this.handler = new OMap([
+			[MessageType.ACK, ACK],
+			[MessageType.PST, PST],
+			[MessageType.REQ, REQ],
+			[MessageType.SYN, SYN],
+		]);
 	}
 
 	async connect(): Promise<Channel> {
@@ -44,7 +51,8 @@ export default class Hedis extends Events {
 		const channel = await this.createChannel(this.name);
 		this.channel = channel;
 
-		channel.sub(message => {
+		channel.sub((message) => {
+			// TODO: use handler here
 			this.emit('message', message);
 		});
 
@@ -57,13 +65,5 @@ export default class Hedis extends Events {
 		await this.client.SADD(`${this.prefix}:channels`, name);
 
 		return new Channel(this, name);
-	}
-
-	async connectToClient(name: string): Promise<Result<Connection, string>> {
-		const con = new Connection(this, name);
-		const res = await con.syn();
-
-		this.connections.set(name, );
-
 	}
 }
