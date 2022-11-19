@@ -8,7 +8,7 @@ import {
 } from 'redis';
 import Channel from '#src/Channel';
 import OMap from '#src/unwrap/OMap';
-import { ACK, PST, REQ, SYN } from '#src/message/handler';
+import { ACK, PST, REQ, SYN } from '#src/message/handler/index';
 import { MessageType, MessageHandler } from '#src/Message';
 import TIDYUP from '#src/scripts/tidyUp';
 

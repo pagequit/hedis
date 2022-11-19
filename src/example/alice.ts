@@ -9,6 +9,10 @@ hedis.connect();
 
 hedis.once('ready', main);
 
+hedis.on('message', (message) => {
+	console.log(message);
+});
+
 hedis.on('post', (post) => {
 	console.log(post.content);
 });
@@ -24,7 +28,7 @@ async function main() {
 
 	await bob.pub('post from alice');
 
-	await bob.syn();
-	const res = await bob.send('message from alice');
-	console.log(res);
+	// await bob.syn();
+	// const res = await bob.send('message from alice');
+	// console.log(res);
 }

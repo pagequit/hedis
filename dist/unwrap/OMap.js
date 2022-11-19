@@ -6,7 +6,7 @@ class OMap extends Map {
    * Don't use `get` on an OMap, use `oget` instead!
    * @param this force a compile time error
    */
-    get() {
+    get(key) {
         throw Error("Don't use `get` on an OMap, use `oget` instead!");
     }
     oget(key) {

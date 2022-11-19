@@ -1,51 +1,67 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const Message_1 = require("#src/Message");
-const Command_1 = require("#src/Command");
-const handler_1 = require("#src/handler");
-const OMap_1 = require("#src/unwrap/OMap");
+const option_1 = require("#src/unwrap/option");
 class Channel {
     constructor(hedis, name) {
         this.hedis = hedis;
         this.name = name;
-        this.schema = 'HEDIS:JSON#';
-        this.commands = new OMap_1.default([
-            [Command_1.Command.ACK, handler_1.ACK],
-            [Command_1.Command.MSG, handler_1.MSG],
-            [Command_1.Command.SYN, handler_1.SYN],
-        ]);
     }
-    async pub(content) {
-        const { prefix, name } = this.hedis;
+    // async syn(): Promise<Result<string, string>> {
+    // 	const id = Date.now().toString(16);
+    // 	const res = await this.hedis.client.publish(this.name, MessageType.SYN + id)
+    // 		.then(() => Ok(id) as Result<string, string>)
+    // 		.catch((e) => Err(e) as Result<string, string>);
+    // 	return this.connection;
+    // }
+    // async post() {
+    // 	// new Post();
+    // }
+    // async request() {
+    // 	// new Request();
+    // }
+    // async send(request: Request): Promise<Result<Response, Error>> {
+    // 	return ;
+    // }
+    async pub(content, type) {
+        const { prefix, name: author } = this.hedis;
         const ts = Date.now();
-        const id = await this.hedis.client.INCR(`${prefix}:${this.name}:last_message_id`);
-        await this.hedis.client.HSET(`${prefix}:${this.name}:${id}`, ['name', name, 'content', content, 'ts', ts]);
-        await this.hedis.client.ZADD(`${prefix}:${this.name}`, { score: ts, value: id.toString() });
+        const id = await this.hedis.client.INCR(`${prefix}:${this.name}:last_message_id`)
+            .then((id) => id.toString());
+        await this.hedis.client.HSET(`${prefix}:${this.name}:${id}`, ['author', author, 'content', content, 'ts', ts]);
+        await this.hedis.client.ZADD(`${prefix}:${this.name}`, { score: ts, value: id });
         // @ts-expect-error: TIDYUP does not exist on type (but it does)
         await this.hedis.client.TIDYUP(`${prefix}:${this.name}`);
-        return this.hedis.client.publish(this.name, this.schema + JSON.stringify({ id, name, content, ts }));
+        const head = {
+            id,
+            author,
+            channel: this.name,
+            ts,
+        };
+        const message = type ?? Message_1.MessageType.PST + JSON.stringify({ head, content });
+        return this.hedis.client.publish(this.name, message);
     }
-    async sub(callbackfn) {
-        return this.hedis.subscriber.subscribe(this.name, rawMessage => {
-            // match(rawMessage.match(Command.REGEX), {
-            // 	[Command.ACK]: ACK,
-            // 	[Command.MSG]: MSG,
-            // 	[Command.SYN]: SYN,
-            // });
-            if (!rawMessage.startsWith(this.schema)) {
+    async sub(callback) {
+        return this.hedis.subscriber.subscribe(this.name, async (rawMessage) => {
+            const match = rawMessage.match(Message_1.MessageRegex);
+            if (!match) {
                 return; // ignore messages with unknown schema
             }
+            const type = match[0];
+            const index = match[0].length;
+            const message = (0, option_1.None)();
             try {
-                const { id, name, content, ts } = JSON.parse(rawMessage.slice(this.schema.length));
-                if (id === undefined || name === undefined || content === undefined || ts === undefined) {
-                    throw new Error('1640784339243');
-                }
-                const message = new Message_1.default(this.hedis, id, this.name, name, content, ts);
-                callbackfn(message);
+                const { head, content } = JSON.parse(rawMessage.slice(index));
+                message.insert({
+                    type: type,
+                    head,
+                    body: content,
+                });
             }
             catch (error) {
-                console.error(error);
+                return console.error(error);
             }
+            return callback(message.unwrap());
         });
     }
 }

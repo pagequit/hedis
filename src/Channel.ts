@@ -33,7 +33,7 @@ export default class Channel {
 	// 	return ;
 	// }
 
-	private async pub(content: string): Promise<number> {
+	async pub(content: string, type?: MessageType): Promise<number> {
 		const { prefix, name: author } = this.hedis;
 		const ts = Date.now();
 		const id = await this.hedis.client.INCR(`${prefix}:${this.name}:last_message_id`)
@@ -50,7 +50,7 @@ export default class Channel {
 			channel: this.name,
 			ts,
 		};
-		const message = JSON.stringify({ head, content });
+		const message = type ?? MessageType.PST + JSON.stringify({ head, content });
 
 		return this.hedis.client.publish(this.name, message);
 	}
