@@ -4,9 +4,8 @@ exports.MessageType = exports.MessageRegex = void 0;
 exports.MessageRegex = '^HED:([A-Z]{3})#';
 var MessageType;
 (function (MessageType) {
-    MessageType["SYN"] = "HED:SYN#";
-    MessageType["ACK"] = "HED:ACK#";
+    MessageType["MSG"] = "HED:MSG#";
     MessageType["REQ"] = "HED:REQ#";
-    MessageType["PST"] = "HED:PST#";
+    MessageType["RES"] = "HED:RES#";
 })(MessageType = exports.MessageType || (exports.MessageType = {}));
 //# sourceMappingURL=Message.js.map

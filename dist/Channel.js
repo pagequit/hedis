@@ -7,22 +7,12 @@ class Channel {
         this.hedis = hedis;
         this.name = name;
     }
-    // async syn(): Promise<Result<string, string>> {
-    // 	const id = Date.now().toString(16);
-    // 	const res = await this.hedis.client.publish(this.name, MessageType.SYN + id)
-    // 		.then(() => Ok(id) as Result<string, string>)
-    // 		.catch((e) => Err(e) as Result<string, string>);
-    // 	return this.connection;
-    // }
-    // async post() {
-    // 	// new Post();
-    // }
-    // async request() {
-    // 	// new Request();
-    // }
-    // async send(request: Request): Promise<Result<Response, Error>> {
-    // 	return ;
-    // }
+    async send(request) {
+        return;
+    }
+    async post(content) {
+        return this.pub(content, Message_1.MessageType.MSG);
+    }
     async pub(content, type) {
         const { prefix, name: author } = this.hedis;
         const ts = Date.now();
@@ -32,13 +22,8 @@ class Channel {
         await this.hedis.client.ZADD(`${prefix}:${this.name}`, { score: ts, value: id });
         // @ts-expect-error: TIDYUP does not exist on type (but it does)
         await this.hedis.client.TIDYUP(`${prefix}:${this.name}`);
-        const head = {
-            id,
-            author,
-            channel: this.name,
-            ts,
-        };
-        const message = type ?? Message_1.MessageType.PST + JSON.stringify({ head, content });
+        const head = { id, author, channel: this.name, ts };
+        const message = type + JSON.stringify({ head, content });
         return this.hedis.client.publish(this.name, message);
     }
     async sub(callback) {
@@ -52,11 +37,7 @@ class Channel {
             const message = (0, option_1.None)();
             try {
                 const { head, content } = JSON.parse(rawMessage.slice(index));
-                message.insert({
-                    type: type,
-                    head,
-                    body: content,
-                });
+                message.insert({ type: type, head, content });
             }
             catch (error) {
                 return console.error(error);

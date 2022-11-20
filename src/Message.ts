@@ -1,13 +1,10 @@
 export const MessageRegex = '^HED:([A-Z]{3})#';
 
 export enum MessageType {
-	SYN = 'HED:SYN#',
-	ACK = 'HED:ACK#',
+	MSG = 'HED:MSG#', // default
 	REQ = 'HED:REQ#',
-	PST = 'HED:PST#',
+	RES = 'HED:RES#',
 }
-
-export type MessageHandler = (callback: (message: Message) => void, message: Message) => void;
 
 export type MessageHead = {
 	id: string,
@@ -19,5 +16,5 @@ export type MessageHead = {
 export type Message = {
 	type: MessageType,
 	head: MessageHead,
-	body: string,
+	content: string,
 };

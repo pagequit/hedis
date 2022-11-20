@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-function default_1(callback, message) {
+function default_1(message) {
     console.log('REQ');
-    callback(message);
+    this.emit('request', message);
 }
 exports.default = default_1;
 //# sourceMappingURL=REQ.js.map
