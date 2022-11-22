@@ -17,6 +17,7 @@ export default class Hedis extends Events {
 	prefix: string;
 	client: ReturnType<typeof createClient>;
 	subscriber: ReturnType<typeof createClient>;
+	requestListener: (req: Request, res: Response) => void;
 
 	constructor(name: string, prefix: string, clientOptions?: RedisClientOptions<RedisModules, RedisFunctions>) {
 		super();
@@ -40,10 +41,13 @@ export default class Hedis extends Events {
 		this.sub(this.name, async (message) => {
 			switch (message.type) {
 				case MessageType.REQ: {
+
+					const response = new Response(this.pub.bind(this), message);
+
 					const { id, head, body } = JSON.parse(message.content);
 					const request = new Request(id, head, body); // ehm new Response?
 
-					this.pub(message.head.author, request.toString(), MessageType.RES);
+					this.requestListener(request, response);
 
 					break;
 				}
@@ -114,18 +118,43 @@ export default class Hedis extends Events {
 		return await this.client.SADD(`${this.prefix}:channels`, name);
 	}
 
-	async request(channel: string, payload: string, callback: (res: string) => void): Promise<void> {
+	async request(channel: string, payload: string): Promise<void> {
 		const id = Date.now().toString(16);
 		const { prefix, name } = this;
 		await this.client.SADD(`${prefix}:${name}:requests`, id);
 
 		await this.pub(channel, new Request(id, 'head', payload).toString(), MessageType.REQ);
 
-		this.once(id, callback);
+		return new Promise((resolve, reject) => {
+			this.once(id, resolve);
+		});
 	}
 
+	listen(callback: (req: Request, res: Response) => void) {
+		this.requestListener = callback;
+	}
 }
 
+class Response {
+	value: string;
+	message: Message;
+	callback: (channel: string, content: string, type: MessageType) => Promise<number>;
+
+	constructor(
+		callback: (channel: string, content: string, type: MessageType) => Promise<number>,
+		message: Message,
+		value?: string
+	) {
+		this.callback = callback;
+		this.message = message;
+		this.value = value ?? '';
+	}
+
+	end(value?: string) {
+		const request_WIP = new Request(JSON.parse(this.message.content).id, 'head', value ?? this.value);
+		this.callback(this.message.head.author, request_WIP.toString(), MessageType.RES);
+	}
+}
 
 class Request {
 	id: string;

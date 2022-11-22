@@ -8,7 +8,9 @@ import Hedis from '#src/Hedis';
 
 	hedis.on('message', console.log);
 
-	await hedis.request('bob', 'request from alice', console.log);
+	hedis.request('bob', 'request from alice').then((res) => {
+		console.log('res: ', res);
 
-	hedis.post('bob', 'hello bob');
+		hedis.post('bob', 'hello bob');
+	});
 }();

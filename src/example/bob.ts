@@ -7,4 +7,10 @@ import Hedis from '#src/Hedis';
 	}).init());
 
 	hedis.on('message', console.log);
+
+	hedis.listen((req, res) => {
+		console.log('req: ', req);
+
+		res.end('oh, hi alice');
+	});
 }();

@@ -7,7 +7,9 @@ const Hedis_1 = require("#src/Hedis");
         url: 'redis://localhost:6379',
     }).init());
     hedis.on('message', console.log);
-    await hedis.request('bob', 'request from alice', console.log);
-    hedis.post('bob', 'hello bob');
+    hedis.request('bob', 'request from alice').then((res) => {
+        console.log('res: ', res);
+        hedis.post('bob', 'hello bob');
+    });
 }();
 //# sourceMappingURL=alice.js.map
