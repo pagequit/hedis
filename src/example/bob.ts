@@ -10,7 +10,9 @@ import Hedis from '#src/Hedis';
 
 	hedis.listen((req, res) => {
 		console.log('req: ', req);
+		setTimeout(() => {
+			res.end('oh, hi alice');
+		}, 11);
 
-		res.end('oh, hi alice');
 	});
 }();

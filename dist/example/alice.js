@@ -10,6 +10,6 @@ const Hedis_1 = require("#src/Hedis");
     hedis.request('bob', 'request from alice').then((res) => {
         console.log('res: ', res);
         hedis.post('bob', 'hello bob');
-    });
+    }).catch(console.log);
 }();
 //# sourceMappingURL=alice.js.map

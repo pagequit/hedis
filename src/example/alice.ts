@@ -12,5 +12,5 @@ import Hedis from '#src/Hedis';
 		console.log('res: ', res);
 
 		hedis.post('bob', 'hello bob');
-	});
+	}).catch(console.log);
 }();

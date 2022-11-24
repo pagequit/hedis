@@ -90,6 +90,10 @@ class Hedis extends Events {
         await this.pub(channel, new Request(id, 'head', payload).toString(), Message_1.MessageType.REQ);
         return new Promise((resolve, reject) => {
             this.once(id, resolve);
+            setTimeout(() => {
+                this.client.SREM(`${prefix}:${name}:requests`, id)
+                    .then(reject);
+            }, 10);
         });
     }
     listen(callback) {

@@ -9,7 +9,9 @@ const Hedis_1 = require("#src/Hedis");
     hedis.on('message', console.log);
     hedis.listen((req, res) => {
         console.log('req: ', req);
-        res.end('oh, hi alice');
+        setTimeout(() => {
+            res.end('oh, hi alice');
+        }, 11);
     });
 }();
 //# sourceMappingURL=bob.js.map

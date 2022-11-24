@@ -127,6 +127,10 @@ export default class Hedis extends Events {
 
 		return new Promise((resolve, reject) => {
 			this.once(id, resolve);
+			setTimeout(() => {
+				this.client.SREM(`${prefix}:${name}:requests`, id)
+					.then(reject);
+			}, 10);
 		});
 	}
 
@@ -157,7 +161,7 @@ class Response {
 }
 
 class Request {
-	id: string;
+	id: string; // FIXME name is confusing
 	head: string;
 	body: string;
 
