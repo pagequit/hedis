@@ -17,7 +17,7 @@ export default class Hedis extends Events {
 	prefix: string;
 	client: ReturnType<typeof createClient>;
 	subscriber: ReturnType<typeof createClient>;
-	requestListener: (req: Request, res: Response) => void;
+	requestListener: (req: Request<unknown>, res: Response<unknown>) => void;
 
 	constructor(name: string, prefix: string, clientOptions?: RedisClientOptions<RedisModules, RedisFunctions>) {
 		super();
@@ -123,23 +123,27 @@ export default class Hedis extends Events {
 		const { prefix, name } = this;
 		await this.client.SADD(`${prefix}:${name}:requests`, id);
 
-		await this.pub(channel, new Request(id, 'head', payload).toString(), MessageType.REQ);
+		await this.pub(
+			channel,
+			JSON.stringify({ id, value: payload } as Request<string>),
+			MessageType.REQ
+		);
 
 		return new Promise((resolve, reject) => {
 			this.once(id, resolve);
 			setTimeout(() => {
 				this.client.SREM(`${prefix}:${name}:requests`, id)
 					.then(reject);
-			}, 10);
+			}, 10); // 30000
 		});
 	}
 
-	listen(callback: (req: Request, res: Response) => void) {
+	listen<T, U>(callback: (req: Request<T>, res: Response<U>) => void) {
 		this.requestListener = callback;
 	}
 }
 
-class Response {
+class Response<U> {
 	value: string;
 	message: Message;
 	callback: (channel: string, content: string, type: MessageType) => Promise<number>;
@@ -155,23 +159,15 @@ class Response {
 	}
 
 	end(value?: string) {
-		const request_WIP = new Request(JSON.parse(this.message.content).id, 'head', value ?? this.value);
+		const request_WIP: Request<string> = {
+			id: JSON.parse(this.message.content).id,
+			value: value ?? this.value,
+		};
 		this.callback(this.message.head.author, request_WIP.toString(), MessageType.RES);
 	}
 }
 
-class Request {
-	id: string; // FIXME name is confusing
-	head: string;
-	body: string;
-
-	constructor(id: string, head: string, body: string) {
-		this.id = id;
-		this.head = head;
-		this.body = body;
-	}
-
-	toString() {
-		return JSON.stringify(this);
-	}
-}
+type Request<T> = {
+	id: string;
+	value: T;
+};

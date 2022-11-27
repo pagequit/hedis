@@ -87,13 +87,13 @@ class Hedis extends Events {
         const id = Date.now().toString(16);
         const { prefix, name } = this;
         await this.client.SADD(`${prefix}:${name}:requests`, id);
-        await this.pub(channel, new Request(id, 'head', payload).toString(), Message_1.MessageType.REQ);
+        await this.pub(channel, JSON.stringify({ id, value: payload }), Message_1.MessageType.REQ);
         return new Promise((resolve, reject) => {
             this.once(id, resolve);
             setTimeout(() => {
                 this.client.SREM(`${prefix}:${name}:requests`, id)
                     .then(reject);
-            }, 10);
+            }, 10); // 30000
         });
     }
     listen(callback) {
@@ -108,18 +108,11 @@ class Response {
         this.value = value ?? '';
     }
     end(value) {
-        const request_WIP = new Request(JSON.parse(this.message.content).id, 'head', value ?? this.value);
+        const request_WIP = {
+            id: JSON.parse(this.message.content).id,
+            value: value ?? this.value,
+        };
         this.callback(this.message.head.author, request_WIP.toString(), Message_1.MessageType.RES);
-    }
-}
-class Request {
-    constructor(id, head, body) {
-        this.id = id;
-        this.head = head;
-        this.body = body;
-    }
-    toString() {
-        return JSON.stringify(this);
     }
 }
 //# sourceMappingURL=Hedis.js.map

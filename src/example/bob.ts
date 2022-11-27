@@ -12,7 +12,7 @@ import Hedis from '#src/Hedis';
 		console.log('req: ', req);
 		setTimeout(() => {
 			res.end('oh, hi alice');
-		}, 11);
+		}, 1);
 
 	});
 }();

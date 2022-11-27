@@ -11,7 +11,7 @@ const Hedis_1 = require("#src/Hedis");
         console.log('req: ', req);
         setTimeout(() => {
             res.end('oh, hi alice');
-        }, 11);
+        }, 1);
     });
 }();
 //# sourceMappingURL=bob.js.map
