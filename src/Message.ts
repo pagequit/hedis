@@ -6,15 +6,11 @@ export enum MessageType {
 	RES = 'HED:RES#',
 }
 
-export type MessageHead = {
+export type Message = {
+	type: MessageType,
 	id: string,
 	author: string,
 	channel: string,
 	ts: number,
-};
-
-export type Message = {
-	type: MessageType,
-	head: MessageHead,
 	content: string,
 };

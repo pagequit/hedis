@@ -12,7 +12,7 @@ const rl = (0, node_readline_1.createInterface)({
     const data2 = 'data2: TCP uses a three-way handshake to set up a TCP/IP connection over an IP based network. :data2';
     const data3 = '';
     const hash = (0, node_crypto_1.createHash)('sha1').update(data).digest('base64');
-    const hash2 = (0, node_crypto_1.createHash)('sha1').update(data2).digest('base64');
+    const hash2 = (0, node_crypto_1.createHash)('sha1').update(data2).digest('hex');
     const hash3 = (0, node_crypto_1.createHash)('sha1').update(data3).digest('base64');
     console.log(hash);
     console.log(hash2);

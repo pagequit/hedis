@@ -1,4 +1,5 @@
 import * as Events from 'node:events';
+import { randomUUID } from 'node:crypto';
 import {
 	createClient,
 	RedisClientOptions,
@@ -6,18 +7,18 @@ import {
 	RedisModules,
 	RedisScripts
 } from 'redis';
-import Option, { Some, None } from '#src/unwrap/option';
-import Result, { Err, Ok } from '#src/unwrap/result';
-import { Message, MessageHead, MessageType, MessageRegex } from '#src/Message';
+import RJSON from '#src/unwrap/RJSON';
+import { Message, MessageType, MessageRegex } from '#src/Message';
+import Request, { RequestType } from '#src/Request';
 import TIDYUP from '#src/scripts/tidyUp';
-import OMap from '#src/unwrap/OMap';
 
 export default class Hedis extends Events {
 	name: string;
 	prefix: string;
 	client: ReturnType<typeof createClient>;
 	subscriber: ReturnType<typeof createClient>;
-	requestListener: (req: Request<unknown>, res: Response<unknown>) => void;
+	requests: Map<string, number>;
+	handleRequest: (request: Request) => void;
 
 	constructor(name: string, prefix: string, clientOptions?: RedisClientOptions<RedisModules, RedisFunctions>) {
 		super();
@@ -31,6 +32,8 @@ export default class Hedis extends Events {
 			...clientOptions
 		});
 		this.subscriber = createClient(clientOptions);
+
+		this.requests = new Map();
 	}
 
 	async init(): Promise<Hedis> {
@@ -41,31 +44,39 @@ export default class Hedis extends Events {
 		this.sub(this.name, async (message) => {
 			switch (message.type) {
 				case MessageType.REQ: {
+					const request = RJSON.parse<RequestType>(message.content);
+					if (request.isErr()) {
+						console.error(request.unwrapErr());
+						break;
+					}
 
-					const response = new Response(this.pub.bind(this), message);
-
-					const { id, head, body } = JSON.parse(message.content);
-					const request = new Request(id, head, body); // ehm new Response?
-
-					this.requestListener(request, response);
+					const { uuid, data } = request.unwrap();
+					this.handleRequest(new Request(uuid, message.author, data, this));
 
 					break;
 				}
 				case MessageType.RES: {
-					const { prefix, name } = this;
-					const { id, head, body } = JSON.parse(message.content);
-					if ((await this.client.SREM(`${prefix}:${name}:requests`, id)) > 0) {
-						this.emit(id, { head, body });
+					const response = RJSON.parse<RequestType>(message.content);
+					if (response.isErr()) {
+						console.error(response.unwrapErr());
+						break;
+					}
+
+					const { uuid, data } = response.unwrap();
+					if (this.requests.delete(uuid)) {
+						this.emit(uuid, data);
 					}
 
 					break;
 				}
+				case MessageType.MSG:
+				default: {
+					this.emit('message', message);
+				}
 			}
-
-			this.emit('message', message);
 		});
 
-		this.emit('ready', this); // not sure if that's really a good practice
+		this.emit('ready', this);
 
 		return this;
 	}
@@ -81,36 +92,33 @@ export default class Hedis extends Events {
 		// @ts-expect-error: TIDYUP does not exist on type (but it does)
 		await this.client.TIDYUP(`${prefix}:${channel}`);
 
-		const head: MessageHead = { id, author, channel: channel,	ts };
-		const message = type + JSON.stringify({ head, content });
+		const message = RJSON.stringify<Message>({ type, id, author, channel, ts, content });
+		if (message.isErr()) {
+			console.error(message.unwrapErr());
+			return 0;
+		}
 
-		return this.client.publish(channel, message);
+		return this.client.publish(channel, type + message.unwrap());
 	}
 
-	async sub(channel: string, callback: (message: Message) => void): Promise<void> {
-		return this.subscriber.subscribe(channel, async (rawMessage) => {
+	sub(channel: string, callback: (message: Message) => void): Promise<void> {
+		return this.subscriber.subscribe(channel, (rawMessage) => {
 			const match = rawMessage.match(MessageRegex);
 			if (!match) {
 				return; // ignore messages with unknown schema
 			}
 
-			const type = match[0];
 			const index = match[0].length;
-			const message: Option<Message> = None();
-
-			try {
-				const { head, content } = JSON.parse(rawMessage.slice(index));
-				message.insert({ type: type as MessageType, head, content });
-			}
-			catch (error) {
-				return console.error(error);
+			const message = RJSON.parse<Message>(rawMessage.slice(index));
+			if (message.isErr()) {
+				return console.error(message.unwrapErr());
 			}
 
 			return callback(message.unwrap());
 		});
 	}
 
-	async post(channel: string, content: string): Promise<number> {
+	post(channel: string, content: string): Promise<number> {
 		return this.pub(channel, content, MessageType.MSG);
 	}
 
@@ -118,56 +126,26 @@ export default class Hedis extends Events {
 		return await this.client.SADD(`${this.prefix}:channels`, name);
 	}
 
-	async request(channel: string, payload: string): Promise<void> {
-		const id = Date.now().toString(16);
-		const { prefix, name } = this;
-		await this.client.SADD(`${prefix}:${name}:requests`, id);
-
-		await this.pub(
-			channel,
-			JSON.stringify({ id, value: payload } as Request<string>),
-			MessageType.REQ
-		);
-
+	request(channel: string, data: string, timeout = 30000): Promise<string> {
 		return new Promise((resolve, reject) => {
-			this.once(id, resolve);
+			const uuid = randomUUID();
+			this.requests.set(uuid, Date.now());
+
+			const content = RJSON.stringify<RequestType>({ uuid, data });
+			if (content.isErr()) {
+				reject(content.unwrapErr());
+			}
+
+			this.pub(channel, content.unwrap(), MessageType.REQ);
+			this.once(uuid, resolve);
 			setTimeout(() => {
-				this.client.SREM(`${prefix}:${name}:requests`, id)
-					.then(reject);
-			}, 10); // 30000
+				this.requests.delete(uuid);
+				reject('Request expired.');
+			}, timeout);
 		});
 	}
 
-	listen<T, U>(callback: (req: Request<T>, res: Response<U>) => void) {
-		this.requestListener = callback;
+	listen(requestHandler: (request: Request) => void) {
+		this.handleRequest = requestHandler;
 	}
 }
-
-class Response<U> {
-	value: string;
-	message: Message;
-	callback: (channel: string, content: string, type: MessageType) => Promise<number>;
-
-	constructor(
-		callback: (channel: string, content: string, type: MessageType) => Promise<number>,
-		message: Message,
-		value?: string
-	) {
-		this.callback = callback;
-		this.message = message;
-		this.value = value ?? '';
-	}
-
-	end(value?: string) {
-		const request_WIP: Request<string> = {
-			id: JSON.parse(this.message.content).id,
-			value: value ?? this.value,
-		};
-		this.callback(this.message.head.author, request_WIP.toString(), MessageType.RES);
-	}
-}
-
-type Request<T> = {
-	id: string;
-	value: T;
-};

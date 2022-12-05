@@ -6,13 +6,16 @@ import Hedis from '#src/Hedis';
 		url: 'redis://localhost:6379',
 	}).init());
 
-	hedis.on('message', console.log);
+	hedis.on('message', (message) => {
+		console.log('message: ', message);
+	});
 
-	hedis.listen((req, res) => {
-		console.log('req: ', req);
+	hedis.listen((request) => {
+		console.log('request: ', request.data);
+
 		setTimeout(() => {
-			res.end('oh, hi alice');
-		}, 1);
+			request.respond('oh, hi alice');
+		}, 20);
 
 	});
 }();

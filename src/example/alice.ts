@@ -6,11 +6,17 @@ import Hedis from '#src/Hedis';
 		url: 'redis://localhost:6379',
 	}).init());
 
-	hedis.on('message', console.log);
+	hedis.on('message', (message) => {
+		console.log('message: ', message);
+	});
 
-	hedis.request('bob', 'request from alice').then((res) => {
-		console.log('res: ', res);
+	hedis.request('bob', 'request from alice')
+		.then((response) => {
+			console.log('response: ', response);
 
-		hedis.post('bob', 'hello bob');
-	}).catch(console.log);
+			hedis.post('bob', 'hello bob');
+		})
+		.catch((error) => {
+			console.error('error: ', error);
+		});
 }();

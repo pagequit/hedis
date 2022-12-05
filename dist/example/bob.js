@@ -6,12 +6,14 @@ const Hedis_1 = require("#src/Hedis");
     const hedis = await (new Hedis_1.default('bob', 'hedis', {
         url: 'redis://localhost:6379',
     }).init());
-    hedis.on('message', console.log);
-    hedis.listen((req, res) => {
-        console.log('req: ', req);
+    hedis.on('message', (message) => {
+        console.log('message: ', message);
+    });
+    hedis.listen((request) => {
+        console.log('request: ', request.data);
         setTimeout(() => {
-            res.end('oh, hi alice');
-        }, 1);
+            request.respond('oh, hi alice');
+        }, 20);
     });
 }();
 //# sourceMappingURL=bob.js.map

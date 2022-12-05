@@ -1,9 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const Events = require("node:events");
+const node_crypto_1 = require("node:crypto");
 const redis_1 = require("redis");
-const option_1 = require("#src/unwrap/option");
+const RJSON_1 = require("#src/unwrap/RJSON");
 const Message_1 = require("#src/Message");
+const Request_1 = require("#src/Request");
 const tidyUp_1 = require("#src/scripts/tidyUp");
 class Hedis extends Events {
     constructor(name, prefix, clientOptions) {
@@ -17,6 +19,7 @@ class Hedis extends Events {
             ...clientOptions
         });
         this.subscriber = (0, redis_1.createClient)(clientOptions);
+        this.requests = new Map();
     }
     async init() {
         await this.client.connect();
@@ -25,24 +28,34 @@ class Hedis extends Events {
         this.sub(this.name, async (message) => {
             switch (message.type) {
                 case Message_1.MessageType.REQ: {
-                    const response = new Response(this.pub.bind(this), message);
-                    const { id, head, body } = JSON.parse(message.content);
-                    const request = new Request(id, head, body); // ehm new Response?
-                    this.requestListener(request, response);
+                    const request = RJSON_1.default.parse(message.content);
+                    if (request.isErr()) {
+                        console.error(request.unwrapErr());
+                        break;
+                    }
+                    const { uuid, data } = request.unwrap();
+                    this.handleRequest(new Request_1.default(uuid, message.author, data, this));
                     break;
                 }
                 case Message_1.MessageType.RES: {
-                    const { prefix, name } = this;
-                    const { id, head, body } = JSON.parse(message.content);
-                    if ((await this.client.SREM(`${prefix}:${name}:requests`, id)) > 0) {
-                        this.emit(id, { head, body });
+                    const response = RJSON_1.default.parse(message.content);
+                    if (response.isErr()) {
+                        console.error(response.unwrapErr());
+                        break;
+                    }
+                    const { uuid, data } = response.unwrap();
+                    if (this.requests.delete(uuid)) {
+                        this.emit(uuid, data);
                     }
                     break;
                 }
+                case Message_1.MessageType.MSG:
+                default: {
+                    this.emit('message', message);
+                }
             }
-            this.emit('message', message);
         });
-        this.emit('ready', this); // not sure if that's really a good practice
+        this.emit('ready', this);
         return this;
     }
     async pub(channel, content, type) {
@@ -54,65 +67,52 @@ class Hedis extends Events {
         await this.client.ZADD(`${prefix}:${channel}`, { score: ts, value: id });
         // @ts-expect-error: TIDYUP does not exist on type (but it does)
         await this.client.TIDYUP(`${prefix}:${channel}`);
-        const head = { id, author, channel: channel, ts };
-        const message = type + JSON.stringify({ head, content });
-        return this.client.publish(channel, message);
+        const message = RJSON_1.default.stringify({ type, id, author, channel, ts, content });
+        if (message.isErr()) {
+            console.error(message.unwrapErr());
+            return 0;
+        }
+        return this.client.publish(channel, type + message.unwrap());
     }
-    async sub(channel, callback) {
-        return this.subscriber.subscribe(channel, async (rawMessage) => {
+    sub(channel, callback) {
+        return this.subscriber.subscribe(channel, (rawMessage) => {
             const match = rawMessage.match(Message_1.MessageRegex);
             if (!match) {
                 return; // ignore messages with unknown schema
             }
-            const type = match[0];
             const index = match[0].length;
-            const message = (0, option_1.None)();
-            try {
-                const { head, content } = JSON.parse(rawMessage.slice(index));
-                message.insert({ type: type, head, content });
-            }
-            catch (error) {
-                return console.error(error);
+            const message = RJSON_1.default.parse(rawMessage.slice(index));
+            if (message.isErr()) {
+                return console.error(message.unwrapErr());
             }
             return callback(message.unwrap());
         });
     }
-    async post(channel, content) {
+    post(channel, content) {
         return this.pub(channel, content, Message_1.MessageType.MSG);
     }
     async registerChannel(name) {
         return await this.client.SADD(`${this.prefix}:channels`, name);
     }
-    async request(channel, payload) {
-        const id = Date.now().toString(16);
-        const { prefix, name } = this;
-        await this.client.SADD(`${prefix}:${name}:requests`, id);
-        await this.pub(channel, JSON.stringify({ id, value: payload }), Message_1.MessageType.REQ);
+    request(channel, data, timeout = 30000) {
         return new Promise((resolve, reject) => {
-            this.once(id, resolve);
+            const uuid = (0, node_crypto_1.randomUUID)();
+            this.requests.set(uuid, Date.now());
+            const content = RJSON_1.default.stringify({ uuid, data });
+            if (content.isErr()) {
+                reject(content.unwrapErr());
+            }
+            this.pub(channel, content.unwrap(), Message_1.MessageType.REQ);
+            this.once(uuid, resolve);
             setTimeout(() => {
-                this.client.SREM(`${prefix}:${name}:requests`, id)
-                    .then(reject);
-            }, 10); // 30000
+                this.requests.delete(uuid);
+                reject('Request expired.');
+            }, timeout);
         });
     }
-    listen(callback) {
-        this.requestListener = callback;
+    listen(requestHandler) {
+        this.handleRequest = requestHandler;
     }
 }
 exports.default = Hedis;
-class Response {
-    constructor(callback, message, value) {
-        this.callback = callback;
-        this.message = message;
-        this.value = value ?? '';
-    }
-    end(value) {
-        const request_WIP = {
-            id: JSON.parse(this.message.content).id,
-            value: value ?? this.value,
-        };
-        this.callback(this.message.head.author, request_WIP.toString(), Message_1.MessageType.RES);
-    }
-}
 //# sourceMappingURL=Hedis.js.map

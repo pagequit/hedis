@@ -13,7 +13,7 @@ const rl = createInterface({
 	const data3 = '';
 
 	const hash = createHash('sha1').update(data).digest('base64');
-	const hash2 = createHash('sha1').update(data2).digest('base64');
+	const hash2 = createHash('sha1').update(data2).digest('hex');
 	const hash3 = createHash('sha1').update(data3).digest('base64');
 
 	console.log(hash);
