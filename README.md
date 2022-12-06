@@ -4,6 +4,7 @@ Hedis is a crappy little redis wrapper I wrote (based on [node-redis](https://gi
 
 ## Example usage
 
+[bob.ts](../blob/master/src/example/bob.ts)
 ```js
 const hedis = new Hedis('devuser', 'hedis', {
 	url: 'redis://localhost:6379',
@@ -28,8 +29,7 @@ async function main() {
 }
 ```
 
-If you don't like the event-based approach, you can opt for a promise chain:
-
+[alice.ts](../blob/master/src/example/alice.ts)
 ```js
 const hedis = new Hedis('devuser', 'hedis', {
 	url: 'redis://localhost:6379',
