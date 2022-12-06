@@ -1,9 +1,9 @@
 {
-  "name": "hedis",
-  "version": "1.0.1",
+  "name": "@pagequit/hedis",
+  "version": "2.0.0",
   "main": "dist/Hedis.js",
   "types": "dist/Hedis.d.ts",
-  "author": "pagequit.net",
+  "author": "pagequit",
   "license": "MIT",
   "private": true,
   "repository": {
