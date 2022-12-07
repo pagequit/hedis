@@ -6,7 +6,7 @@ const redis_1 = require("redis");
 const RJSON_1 = require("./unwrap/RJSON");
 const Message_1 = require("./Message");
 const Request_1 = require("./Request");
-const tidyUp_1 = require("#src/scripts/tidyUp");
+const tidyUp_1 = require("./scripts/tidyUp");
 class Hedis extends Events {
     constructor(name, prefix, clientOptions) {
         super();
