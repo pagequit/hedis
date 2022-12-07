@@ -5,7 +5,7 @@ export default class OMap<K, V> extends Map<K, V> {
    * Don't use `get` on an OMap, use `oget` instead!
    * @param this force a compile time error
    */
-	get(this: never, key: K): V | undefined {
+	get(this: never, key: K): V | undefined { // eslint-disable-line @typescript-eslint/no-unused-vars
 		throw Error("Don't use `get` on an OMap, use `oget` instead!");
 	}
 

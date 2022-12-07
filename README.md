@@ -4,52 +4,53 @@ Hedis is a crappy little redis wrapper I wrote (based on [node-redis](https://gi
 
 ## Example usage
 
-[bob.ts](../blob/master/src/example/bob.ts)
-```js
-const hedis = new Hedis('devuser', 'hedis', {
-	url: 'redis://localhost:6379',
-});
+[bob.ts](src/example/bob.ts)
+```ts
+import Hedis from 'hedis';
 
-hedis.connect();
+!async function main() {
+	const hedis = await (new Hedis('bob', 'hedis', {
+		url: 'redis://localhost:6379',
+	}).init());
 
-hedis.once('ready', main);
-
-hedis.on('message', async message => {
-	await message.reply(`reply from ${hedis.username}!`);
-});
-
-async function main() {
-	const testChannel = await hedis.getChannel('testchannel');
-
-	await testChannel.sub(async message => {
-		console.log(`${testChannel.name}: `, message.content);
+	hedis.on('message', (message) => {
+		console.log('message: ', message);
 	});
 
-	await testChannel.pub(`hello from ${testChannel.name}!`);
-}
+	hedis.listen((request) => {
+		console.log('request: ', request.data);
+
+		setTimeout(() => {
+			request.respond('oh, hi alice');
+		}, 20);
+
+	});
+}();
 ```
 
-[alice.ts](../blob/master/src/example/alice.ts)
-```js
-const hedis = new Hedis('devuser', 'hedis', {
-	url: 'redis://localhost:6379',
-});
+[alice.ts](src/example/alice.ts)
+```ts
+import Hedis from 'hedis';
 
-(async () => {
-	await hedis.connect().then(devuserChannel => {
-		devuserChannel.sub(async message => {
-			await message.reply(`reply from ${hedis.username}!`);
-		});
+!async function main() {
+	const hedis = await (new Hedis('alice', 'hedis', {
+		url: 'redis://localhost:6379',
+	}).init());
+
+	hedis.on('message', (message) => {
+		console.log('message: ', message);
 	});
 
-	hedis.getChannel('testchannel').then(testChannel => {
-		testChannel.sub(async message => {
-			console.log(`${testChannel.name}: `, message.content);
-		}).then(() => {
-			testChannel.pub(`hello from ${testChannel.name}!`);
+	hedis.request('bob', 'request from alice')
+		.then((response) => {
+			console.log('response: ', response);
+
+			hedis.post('bob', 'hello bob');
+		})
+		.catch((error) => {
+			console.error('error: ', error);
 		});
-	});
-})();
+}();
 ```
 
 > :warning: Keep in mind that the hedis `username` is always also a channel!

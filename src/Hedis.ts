@@ -7,10 +7,10 @@ import {
 	RedisModules,
 	RedisScripts
 } from 'redis';
-import RJSON from '#src/unwrap/RJSON';
-import { Message, MessageType, MessageRegex } from '#src/Message';
-import Request, { RequestType } from '#src/Request';
-import TIDYUP from '#src/scripts/tidyUp';
+import RJSON from './unwrap/RJSON';
+import { Message, MessageType, MessageRegex } from './Message';
+import Request, { RequestType } from './Request';
+import TIDYUP from './scripts/tidyUp';
 
 export default class Hedis extends Events {
 	name: string;

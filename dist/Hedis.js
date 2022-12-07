@@ -3,9 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Events = require("node:events");
 const node_crypto_1 = require("node:crypto");
 const redis_1 = require("redis");
-const RJSON_1 = require("#src/unwrap/RJSON");
-const Message_1 = require("#src/Message");
-const Request_1 = require("#src/Request");
+const RJSON_1 = require("./unwrap/RJSON");
+const Message_1 = require("./Message");
+const Request_1 = require("./Request");
 const tidyUp_1 = require("#src/scripts/tidyUp");
 class Hedis extends Events {
     constructor(name, prefix, clientOptions) {

@@ -1,5 +1,5 @@
-import Hedis from '#src/Hedis';
-import { MessageType } from '#src/Message';
+import Hedis from './Hedis';
+import { MessageType } from './Message';
 
 export default class Request {
 	uuid: string;

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const Message_1 = require("#src/Message");
+const Message_1 = require("./Message");
 class Request {
     constructor(uuid, requester, data, hedis) {
         this.uuid = uuid;
