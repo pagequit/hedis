@@ -1,5 +1,5 @@
 #!/usr/bin/node
-import Hedis from '#src/Hedis';
+import Hedis from '../Hedis';
 
 !async function main() {
 	const hedis = await (new Hedis('bob', 'hedis', {
