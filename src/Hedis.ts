@@ -8,6 +8,7 @@ import {
 	RedisScripts
 } from 'redis';
 import RJSON from './unwrap/RJSON';
+import OMap from './unwrap/OMap';
 import { Message, MessageType, MessageRegex } from './Message';
 import Request, { RequestType } from './Request';
 import TIDYUP from './scripts/tidyUp';
@@ -17,7 +18,7 @@ export default class Hedis extends Events {
 	prefix: string;
 	client: ReturnType<typeof createClient>;
 	subscriber: ReturnType<typeof createClient>;
-	requests: Map<string, number>;
+	requests: OMap<string, (data: string) => void>;
 	handleRequest: (request: Request) => void;
 
 	constructor(name: string, prefix: string, clientOptions?: RedisClientOptions<RedisModules, RedisFunctions>) {
@@ -33,7 +34,7 @@ export default class Hedis extends Events {
 		});
 		this.subscriber = createClient(clientOptions);
 
-		this.requests = new Map();
+		this.requests = new OMap();
 	}
 
 	async init(): Promise<Hedis> {
@@ -63,8 +64,11 @@ export default class Hedis extends Events {
 					}
 
 					const { uuid, data } = response.unwrap();
-					if (this.requests.delete(uuid)) {
-						this.emit(uuid, data);
+					const request = this.requests.oget(uuid);
+
+					if (request.isSome()) {
+						this.requests.delete(uuid);
+						request.unwrap()(data);
 					}
 
 					break;
@@ -129,7 +133,7 @@ export default class Hedis extends Events {
 	request(channel: string, data: string, timeout = 30000): Promise<string> {
 		return new Promise((resolve, reject) => {
 			const uuid = randomUUID();
-			this.requests.set(uuid, Date.now());
+			this.requests.set(uuid, resolve);
 
 			const content = RJSON.stringify<RequestType>({ uuid, data });
 			if (content.isErr()) {
@@ -137,7 +141,6 @@ export default class Hedis extends Events {
 			}
 
 			this.pub(channel, content.unwrap(), MessageType.REQ);
-			this.once(uuid, resolve);
 			setTimeout(() => {
 				this.requests.delete(uuid);
 				reject('Request expired.');

@@ -13,4 +13,6 @@ export default class OMap<K, V> extends Map<K, V> {
 		const value = super.get(key);
 		return value === undefined ? None() : Some(value);
 	}
+
+
 }

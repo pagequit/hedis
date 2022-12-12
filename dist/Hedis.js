@@ -4,6 +4,7 @@ const Events = require("node:events");
 const node_crypto_1 = require("node:crypto");
 const redis_1 = require("redis");
 const RJSON_1 = require("./unwrap/RJSON");
+const OMap_1 = require("./unwrap/OMap");
 const Message_1 = require("./Message");
 const Request_1 = require("./Request");
 const tidyUp_1 = require("./scripts/tidyUp");
@@ -19,7 +20,7 @@ class Hedis extends Events {
             ...clientOptions
         });
         this.subscriber = (0, redis_1.createClient)(clientOptions);
-        this.requests = new Map();
+        this.requests = new OMap_1.default();
     }
     async init() {
         await this.client.connect();
@@ -44,8 +45,10 @@ class Hedis extends Events {
                         break;
                     }
                     const { uuid, data } = response.unwrap();
-                    if (this.requests.delete(uuid)) {
-                        this.emit(uuid, data);
+                    const request = this.requests.oget(uuid);
+                    if (request.isSome()) {
+                        this.requests.delete(uuid);
+                        request.unwrap()(data);
                     }
                     break;
                 }
@@ -97,13 +100,12 @@ class Hedis extends Events {
     request(channel, data, timeout = 30000) {
         return new Promise((resolve, reject) => {
             const uuid = (0, node_crypto_1.randomUUID)();
-            this.requests.set(uuid, Date.now());
+            this.requests.set(uuid, resolve);
             const content = RJSON_1.default.stringify({ uuid, data });
             if (content.isErr()) {
                 reject(content.unwrapErr());
             }
             this.pub(channel, content.unwrap(), Message_1.MessageType.REQ);
-            this.once(uuid, resolve);
             setTimeout(() => {
                 this.requests.delete(uuid);
                 reject('Request expired.');

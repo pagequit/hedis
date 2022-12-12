@@ -1,6 +1,7 @@
 /// <reference types="node" />
 import * as Events from 'node:events';
 import { createClient, RedisClientOptions, RedisFunctions, RedisModules } from 'redis';
+import OMap from './unwrap/OMap';
 import { Message, MessageType } from './Message';
 import Request from './Request';
 export default class Hedis extends Events {
@@ -8,7 +9,7 @@ export default class Hedis extends Events {
     prefix: string;
     client: ReturnType<typeof createClient>;
     subscriber: ReturnType<typeof createClient>;
-    requests: Map<string, number>;
+    requests: OMap<string, (data: string) => void>;
     handleRequest: (request: Request) => void;
     constructor(name: string, prefix: string, clientOptions?: RedisClientOptions<RedisModules, RedisFunctions>);
     init(): Promise<Hedis>;
