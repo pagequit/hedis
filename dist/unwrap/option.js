@@ -143,7 +143,7 @@ var OptionType;
 (function (OptionType) {
     OptionType[OptionType["Some"] = 0] = "Some";
     OptionType[OptionType["None"] = 1] = "None";
-})(OptionType = exports.OptionType || (exports.OptionType = {}));
+})(OptionType || (exports.OptionType = OptionType = {}));
 function None() {
     return new Option(undefined, OptionType.None);
 }

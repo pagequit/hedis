@@ -4,7 +4,7 @@ export declare enum MessageType {
     REQ = "HED:REQ#",
     RES = "HED:RES#"
 }
-export declare type Message = {
+export type Message = {
     type: MessageType;
     id: string;
     author: string;

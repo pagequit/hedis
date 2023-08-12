@@ -129,7 +129,7 @@ var ResultType;
 (function (ResultType) {
     ResultType[ResultType["Err"] = 0] = "Err";
     ResultType[ResultType["Ok"] = 1] = "Ok";
-})(ResultType = exports.ResultType || (exports.ResultType = {}));
+})(ResultType || (exports.ResultType = ResultType = {}));
 function Err(value) {
     return new Result(value, ResultType.Err);
 }

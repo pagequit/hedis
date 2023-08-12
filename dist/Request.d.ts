@@ -7,7 +7,7 @@ export default class Request {
     constructor(uuid: string, requester: string, data: string, hedis: Hedis);
     respond(data: string): void;
 }
-export declare type RequestType = {
+export type RequestType = {
     uuid: string;
     data: string;
 };

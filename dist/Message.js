@@ -7,5 +7,5 @@ var MessageType;
     MessageType["MSG"] = "HED:MSG#";
     MessageType["REQ"] = "HED:REQ#";
     MessageType["RES"] = "HED:RES#";
-})(MessageType = exports.MessageType || (exports.MessageType = {}));
+})(MessageType || (exports.MessageType = MessageType = {}));
 //# sourceMappingURL=Message.js.map

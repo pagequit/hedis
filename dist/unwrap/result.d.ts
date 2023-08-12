@@ -39,7 +39,7 @@ export declare enum ResultType {
     Err = 0,
     Ok = 1
 }
-export declare type Err<T, E> = Result<T, E>;
+export type Err<T, E> = Result<T, E>;
 export declare function Err<T, E>(value: E): Err<T, E>;
-export declare type Ok<T, E> = Result<T, E>;
+export type Ok<T, E> = Result<T, E>;
 export declare function Ok<T, E>(value: T): Ok<T, E>;

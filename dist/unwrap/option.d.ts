@@ -41,7 +41,7 @@ export declare enum OptionType {
     Some = 0,
     None = 1
 }
-export declare type None = Option<never>;
+export type None = Option<never>;
 export declare function None(): None;
-export declare type Some<T> = Option<T>;
+export type Some<T> = Option<T>;
 export declare function Some<T>(value: T): Some<T>;
