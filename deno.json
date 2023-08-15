@@ -1,0 +1,9 @@
+{
+  "imports": {
+    "/": "./",
+    "./": "./",
+    "std/": "https://deno.land/std@0.197.0/",
+    "unwrap": "https://deno.land/x/unwrap@v1.1.2/mod.ts",
+    "redis": "npm:redis@4.6.7"
+  }
+}
