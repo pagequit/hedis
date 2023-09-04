@@ -1,9 +1,23 @@
 {
+  "tasks": {
+    "dev": ""
+  },
   "imports": {
     "/": "./",
     "./": "./",
-    "std/": "https://deno.land/std@0.197.0/",
+    "$std/": "https://deno.land/std@0.197.0/",
+    "oak": "https://deno.land/x/oak@v12.6.1/mod.ts",
     "unwrap": "https://deno.land/x/unwrap@v1.1.2/mod.ts",
-    "redis": "npm:redis@4.6.7"
+    "preact": "https://esm.sh/preact@10.17.1",
+    "preact/": "https://esm.sh/preact@10.17.1/",
+    "preact-render-to-string": "https://esm.sh/*preact-render-to-string@6.2.1",
+    "@preact/signals": "https://esm.sh/*@preact/signals@1.1.5",
+    "redis": "https://esm.sh/redis@4.6.7",
+    "twind": "https://esm.sh/twind@1.0.7",
+    "twind/": "https://esm.sh/twind@1.0.7/"
+  },
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
   }
 }
